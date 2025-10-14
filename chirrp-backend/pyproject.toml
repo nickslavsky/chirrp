@@ -1,0 +1,39 @@
+[project]
+name = "chirrp-backend"
+version = "0.1.0"
+description = "Chirrp backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.0",
+    "uvicorn[standard]==0.31.0",
+    "sqlalchemy==2.0.35",
+    "psycopg[binary]==3.2.2",
+    "alembic==1.13.3",
+    "pydantic==2.9.2",
+    "python-dotenv==1.0.1",
+    "pydantic-settings>=2.11.0",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx", "anyio"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "N", "B", "A", "C4", "PT", "SIM", "ARG", "PTH", "ERA"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.setuptools.packages.find]
+where = ["."]
