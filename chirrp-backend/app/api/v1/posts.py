@@ -2,11 +2,12 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, func
-from app.api.deps import get_db, require_bearer_token
+from app.api.deps import get_db
 from app.api.errors import create_error_response
 from app.models.post import Post
 from app.models.user import User
 from app.schemas.post import PostCreate, PostUpdate, PostResponse
+from app.api.deps import get_current_user_id_dep
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -14,13 +15,9 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 def create_post(
     post: PostCreate,
     db: Session = Depends(get_db),
-    auth: bool = Depends(require_bearer_token),
+    user_id: str = Depends(get_current_user_id_dep),
 ):
-    # For simplicity, assume a fixed user for testing; in real, from auth
-    user = db.scalar(select(User).limit(1))
-    if not user:
-        raise create_error_response("NO_USERS", "No users found for testing", status.HTTP_500_INTERNAL_SERVER_ERROR)
-    new_post = Post(id=uuid4(), author_id=user.id, **post.model_dump())
+    new_post = Post(author_id=user_id, **post.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -50,26 +47,51 @@ def update_post(
     post_id: UUID,
     update_data: PostUpdate,
     db: Session = Depends(get_db),
-    auth: bool = Depends(require_bearer_token),
+    user_id: UUID = Depends(get_current_user_id_dep),  # note: UUID, not str
 ):
-    post = db.scalar(select(Post).where(Post.id == post_id, Post.deleted_at.is_(None)))
+    post = db.scalar(
+        select(Post)
+        .where(Post.id == post_id, Post.deleted_at.is_(None))
+    )
     if not post:
         raise create_error_response("NOT_FOUND", "Post not found", status.HTTP_404_NOT_FOUND)
+
+    if post.author_id != user_id:
+        raise create_error_response(
+            "FORBIDDEN", "You can only edit your own posts", status.HTTP_403_FORBIDDEN
+        )
+
     update_dict = update_data.model_dump(exclude_unset=True)
-    if update_dict:
-        db.execute(update(Post).where(Post.id == post_id).values(**update_dict, updated_at=func.now()))
-        db.commit()
-        db.refresh(post)
+    if not update_dict:
+        return post  # nothing to update
+
+    db.execute(
+        update(Post)
+        .where(Post.id == post_id)
+        .values(**update_dict, updated_at=func.now())
+    )
+    db.commit()
+    db.refresh(post)
     return post
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(
     post_id: UUID,
     db: Session = Depends(get_db),
-    auth: bool = Depends(require_bearer_token),
+    user_id: UUID = Depends(get_current_user_id_dep),  # now real JWT auth + ownership check
 ):
-    post = db.scalar(select(Post).where(Post.id == post_id, Post.deleted_at.is_(None)))
+    post = db.scalar(
+        select(Post)
+        .where(Post.id == post_id, Post.deleted_at.is_(None))
+    )
     if not post:
         raise create_error_response("NOT_FOUND", "Post not found", status.HTTP_404_NOT_FOUND)
+
+    if post.author_id != user_id:
+        raise create_error_response(
+            "FORBIDDEN", "You can only delete your own posts", status.HTTP_403_FORBIDDEN
+        )
+
     db.execute(update(Post).where(Post.id == post_id).values(deleted_at=func.now()))
     db.commit()
+    return None

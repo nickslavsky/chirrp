@@ -4,7 +4,9 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: str
     postgres_db: str
-    CHIRRP_BEARER_TOKEN: str
+    CHIRRP_SECRET_KEY: str
+    TOKEN_ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
     API_V1_PREFIX: str = "/api/v1"
     ENV: str = "local"
 
@@ -14,8 +16,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",  # <--- this fixes the ValidationError
+        env_file_encoding="utf-8"
     )
 
 settings = Settings()
