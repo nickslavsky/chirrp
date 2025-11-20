@@ -1,9 +1,9 @@
 from uuid import UUID
 from typing import List
-from pydantic import BaseModel, Field
-from .common import TimestampMixin
+from pydantic import Field
+from .base import ResponseBaseModel, RequestBaseModel
 
-class CommentCreate(BaseModel):
+class CommentCreate(RequestBaseModel):
     post_id: UUID
     parent_comment_id: UUID | None = None
     body: str
@@ -20,7 +20,7 @@ class CommentCreate(BaseModel):
         }
     }
 
-class CommentUpdate(BaseModel):
+class CommentUpdate(RequestBaseModel):
     body: str | None = None
 
     model_config = {
@@ -33,7 +33,7 @@ class CommentUpdate(BaseModel):
         }
     }
 
-class CommentResponse(TimestampMixin):
+class CommentResponse(ResponseBaseModel):
     id: UUID
     post_id: UUID
     parent_comment_id: UUID | None

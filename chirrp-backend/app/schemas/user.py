@@ -1,10 +1,10 @@
 from uuid import UUID
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr
-from .common import TimestampMixin
+from pydantic import Field, EmailStr
+from .base import ResponseBaseModel, RequestBaseModel
 
 
-class UserCreate(BaseModel):
+class UserCreate(RequestBaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     display_name: Optional[str] = None
 
@@ -20,7 +20,7 @@ class UserCreate(BaseModel):
     }
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(RequestBaseModel):
     display_name: Optional[str] = None
 
     model_config = {
@@ -32,7 +32,7 @@ class UserUpdate(BaseModel):
     }
 
 
-class UserResponse(TimestampMixin):
+class UserResponse(ResponseBaseModel):
     id: UUID
     username: str
     display_name: Optional[str] = None

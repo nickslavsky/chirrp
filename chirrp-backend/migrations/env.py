@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.models.comment import Comment
 from app.models.post import Post
 from app.models.user import User
+from app.models.follow import Follow, SocialGraphEvent
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

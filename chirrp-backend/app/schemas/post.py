@@ -1,8 +1,8 @@
 from uuid import UUID
-from pydantic import BaseModel, Field
-from .common import TimestampMixin
+from pydantic import Field
+from .base import ResponseBaseModel, RequestBaseModel
 
-class PostCreate(BaseModel):
+class PostCreate(RequestBaseModel):
     title: str | None = None
     body: str
 
@@ -17,7 +17,7 @@ class PostCreate(BaseModel):
         }
     }
 
-class PostUpdate(BaseModel):
+class PostUpdate(RequestBaseModel):
     title: str | None = None
     body: str | None = None
 
@@ -32,7 +32,7 @@ class PostUpdate(BaseModel):
         }
     }
 
-class PostResponse(TimestampMixin):
+class PostResponse(ResponseBaseModel):
     id: UUID
     author_id: UUID
     title: str | None
