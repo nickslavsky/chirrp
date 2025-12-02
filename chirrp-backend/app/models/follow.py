@@ -1,36 +1,32 @@
-from uuid import uuid4
-from sqlalchemy import Column, ForeignKey, String, DateTime, func, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+import uuid
+from sqlalchemy import ForeignKey, DateTime, String, func, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
 
 class Follow(Base):
     __tablename__ = "follows"
 
-    follower_id = Column(
-        UUID(as_uuid=True),
+    follower_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    followee_id = Column(
-        UUID(as_uuid=True),
+    followee_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    created_at = Column(
+    created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-
-    __table_args__ = (UniqueConstraint("follower_id", "followee_id", name="uq_follower_followee"),)
 
 
 class SocialGraphEvent(Base):
     __tablename__ = "social_graph_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    follower_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    followee_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    event_type = Column(String(20), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    follower_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    followee_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )

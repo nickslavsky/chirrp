@@ -8,6 +8,7 @@ from app.models.post import Post
 from app.models.user import User
 from app.schemas.post import PostCreate, PostUpdate, PostResponse
 from app.api.deps import get_current_user_id_dep
+from app.services.post_events import emit_post_event, EVENT_POST_CREATED, EVENT_POST_UPDATED, EVENT_POST_DELETED
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -19,6 +20,8 @@ def create_post(
 ):
     new_post = Post(author_id=user_id, **post.model_dump())
     db.add(new_post)
+    db.flush()  # Get ID assigned
+    emit_post_event(db, new_post, EVENT_POST_CREATED)
     db.commit()
     db.refresh(new_post)
     return new_post
@@ -70,8 +73,10 @@ def update_post(
         .where(Post.id == post_id)
         .values(**update_dict, updated_at=func.now())
     )
+    db.flush()  # Ensure post is refreshed before snapshot
+    db.refresh(post) # Refresh to get updated values
+    emit_post_event(db, post, EVENT_POST_UPDATED)
     db.commit()
-    db.refresh(post)
     return post
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -93,5 +98,8 @@ def delete_post(
         )
 
     db.execute(update(Post).where(Post.id == post_id).values(deleted_at=func.now()))
+    db.flush()  # Ensure post is refreshed before snapshot
+    db.refresh(post) # Refresh to include deleted_at
+    emit_post_event(db, post, EVENT_POST_DELETED)
     db.commit()
     return None

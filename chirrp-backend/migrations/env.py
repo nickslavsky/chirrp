@@ -9,6 +9,7 @@ from app.models.comment import Comment
 from app.models.post import Post
 from app.models.user import User
 from app.models.follow import Follow, SocialGraphEvent
+from app.models.post_event import PostEvent
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
