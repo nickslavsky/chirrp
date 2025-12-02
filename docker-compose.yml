@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:17
     container_name: chirrp-db
+    restart: "no"
     env_file:
       - ./chirrp-backend/.env
     volumes:
@@ -19,7 +20,7 @@ services:
       context: ./chirrp-backend
       dockerfile: Dockerfile
     container_name: chirrp-api
-    restart: always
+    restart: "no"
     depends_on:
       db:
         condition: service_healthy
