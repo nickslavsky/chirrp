@@ -1,8 +1,12 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import String, DateTime, func, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
+if TYPE_CHECKING:
+    from .post import Post
+    from .comment import Comment
+    from .post_event import PostEvent
 
 
 class User(Base):
