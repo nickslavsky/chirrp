@@ -17,3 +17,5 @@ A backend for a "Reddit meets X" service with nested comments.
 5. OpenAPI docs at http://localhost:8001/docs. 
 6. Seed sample data: `docker compose exec api python -m scripts.seed`
 7. List posts: `curl http://localhost:8001/api/v1/posts`
+
+P.S. test push 1
